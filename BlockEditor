@@ -1,0 +1,68 @@
+using UnityEngine;
+using System.Collections;
+
+public class BlockEditor : MonoBehaviour 
+{
+
+	public GameObject target;
+	public GUIText display;
+	private ChunkGenerator chunk;
+	public byte selectedBlock;
+
+	void Start() 
+	{
+		Screen.lockCursor = true;	
+	}
+
+	void Update () 
+	{
+		
+		RaycastHit hit;
+
+		float distance=Vector3.Distance(transform.position,target.transform.position);
+		
+		if( Physics.Raycast(transform.position, (target.transform.position -transform.position).normalized, out hit, distance))
+		{
+
+			chunk = hit.transform.GetComponent<ChunkGenerator>();
+
+			Vector3 localHit = hit.transform.InverseTransformPoint (hit.point);
+
+			if(Input.GetMouseButtonDown (0)) // set block to air
+			{
+				Vector3 deletePoint= new Vector3(localHit.x, localHit.y, localHit.z);   //Remove block point
+				deletePoint+=(new Vector3(hit.normal.x,hit.normal.y,hit.normal.z) * -.5f);
+
+				int Px = Mathf.FloorToInt (deletePoint.x);
+				int Py = Mathf.FloorToInt (deletePoint.y + 1f);
+				int Pz = Mathf.FloorToInt (deletePoint.z);
+
+
+				chunk.blockType[Px,Py,Pz] = 0;
+				chunk.GenerateMesh ();
+				chunk.UpdateMesh ();
+			}
+
+
+			if(Input.GetMouseButtonDown (1))
+			{
+				Vector3 point= new Vector3(localHit.x, localHit.y, localHit.z);   //add block point
+				point+=(new Vector3(hit.normal.x,hit.normal.y,hit.normal.z) * .5f);
+				
+				int x = Mathf.FloorToInt (point.x);
+				int y = Mathf.FloorToInt (point.y + 1f);
+				int z = Mathf.FloorToInt (point.z);
+
+				if(chunk.blockType[x,y,z] == 0)
+				{
+					chunk.blockType[x,y,z] = selectedBlock;
+					chunk.GenerateMesh ();
+					chunk.UpdateMesh ();
+				}
+			}
+			
+		} 
+	}
+
+
+}
